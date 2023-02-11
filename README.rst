@@ -2,7 +2,7 @@
 grgrjax
 =======
 
-This is a library providing some additional tools to JAX, such as newtons method or vectorized JVP and VJP functions.
+This library provides some additional tools to JAX, such as Newtons method or vectorized JVP and VJP functions.
 
 Installation with ``pip``
 -----------------------------

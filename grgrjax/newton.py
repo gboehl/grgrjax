@@ -68,7 +68,7 @@ def newton_jax(func, init, jac=None, maxit=30, tol=1e-8, rtol=None, sparse=False
     init : array
         Initial values of x
     jac : callable, optional
-        Funciton that returns the jacobian. If not provided, jax.jacfwd is used
+        Function that returns the jacobian. If not provided, jax.jacfwd is used
     maxit : int, optional
         Maximum number of iterations
     tol : float, optional
