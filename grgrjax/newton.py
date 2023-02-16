@@ -16,6 +16,7 @@ def newton_cond_func(carry):
     jax.debug.callback(callback_func, cnt, eps, verbose=verbose)
     return cond
 
+
 def newton_body_func(carry):
     (xi, eps, cnt), (func, verbose, maxit, tol) = carry
     xi_old = xi
@@ -23,6 +24,7 @@ def newton_body_func(carry):
     xi -= jax.scipy.linalg.solve(jac, f)
     eps = amax(xi-xi_old)
     return (xi, eps, cnt+1), (func, verbose, maxit, tol)
+
 
 def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
     mess = f'    Iteration {cnt:3d} | max. error {err:.2e}'
@@ -32,6 +34,7 @@ def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
         mess += f' | lapsed {ltime:3.4f}s'
     if verbose:
         print(mess)
+
 
 @jax.jit
 def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
@@ -82,6 +85,7 @@ def perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
 
     return False
 
+
 def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=False, verbose_jac=False):
     """Newton method for root finding using automatic differenciation with jax. The argument `func` must be jittable with jax.
 
@@ -122,44 +126,46 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=F
     while True:
 
         xold = xi.copy()
-        jacold = jacval.copy() if cnt else None
         cnt += 1
         # evaluate function
         fout = func(xi)
+
+        # remap function if jacobian is not returned
         if not isinstance(fout, tuple):
             func = val_and_jacfwd(func)
+            fout = func(xi)
 
+        # unwrap results
         fval, jacval, aux = fout if len(fout) == 3 else (*fout, None)
-
+        # check for convergence or errors
         jac_is_nan = jnp.isnan(jacval.data).any() if isinstance(
             jacval, ssp._arrays.csr_array) else jnp.isnan(jacval).any()
         eps = jnp.abs(fval).max()
-
         if perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
             break
 
+        # be informative
+        if verbose and cnt:
+            ltime = time.time() - st
+            info_str = f'    Iteration {cnt:3d} | max. error {eps:.2e} | lapsed {ltime:3.4f}'
+            if verbose_jac:
+                jacval = jacval.toarray() if isinstance(
+                    jacval, ssp._arrays.csr_array) else jacval
+                jacdet = jnp.linalg.det(jacval) if (
+                    jacval.shape[0] == jacval.shape[1]) else 0
+                info_str += f' | det {jacdet:1.5g} | rank {jnp.linalg.matrix_rank(jacval)}/{jacval.shape[0]}'
+            print(info_str)
+
+        # assign suitable solver if not given
         if solver is None:
             if isinstance(jacval, ssp._arrays.csr_array):
                 solver = ssp.linalg.spsolve
             else:
                 solver = jax.scipy.linalg.solve
-
-        if verbose and cnt:
-            ltime = time.time() - st
-            info_str = f'    Iteration {cnt:3d} | max. error {eps:.2e} | lapsed {ltime:3.4f}'
-            if verbose_jac:
-                jacval = jacval.toarray() if isinstance(jacval, ssp._arrays.csr_array) else jacval
-                jacdet = jnp.linalg.det(jacval) if (
-                    jacval.shape[0] == jacval.shape[1]) else 0
-                info_str += f' | det {jacdet:1.5g} | rank {jnp.linalg.matrix_rank(jacval)}/{jacval.shape[0]}'
-
-            print(info_str)
-
         xi -= solver(jacval, fval)
 
     jacval = jacval.toarray() if isinstance(
         jacval, (ssp._arrays.csr_array, ssp._arrays.lil_array)) else jacval
-    jacval = jacold if jac_is_nan else jacval
 
     res['x'], res['niter'] = xi, cnt
     res['fun'], res['jac'] = fval, jacval
@@ -168,7 +174,8 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=F
 
     if verbose_jac:
         # only calculate determinant if requested
-        res['det'] = jnp.linalg.det(jacval) if (jacval.shape[0] == jacval.shape[1]) else 0
+        res['det'] = jnp.linalg.det(jacval) if (
+            jacval.shape[0] == jacval.shape[1]) else 0
     else:
         res['det'] = None
 
