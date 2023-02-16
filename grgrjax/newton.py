@@ -4,6 +4,7 @@ import jax
 import time
 import jax.numpy as jnp
 import scipy.sparse as ssp
+from .helpers import val_and_jacfwd
 
 
 def newton_cond_func(carry):
@@ -56,7 +57,32 @@ def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
                                            newton_body_func, ((x_init, 1., 0), (func, verbose, maxit, tol)))
     return xi, func(xi), cnt, eps > tol
 
-def newton_jax(func, init, jac=None, maxit=30, tol=1e-8, rtol=None, sparse=False, solver=None, func_returns_jac=False, inspect_jac=False, verbose=False, verbose_jac=False):
+
+def perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
+
+    if jac_is_nan.any():
+        res['success'] = False
+        res['message'] = "The Jacobian contains `NaN`s."
+        return True
+
+    if eps < tol or eps < rtol:
+        res['success'] = True
+        res['message'] = "The solution converged."
+        return True
+
+    if cnt == maxit:
+        res['success'] = False
+        res['message'] = f"Maximum number of {maxit} iterations reached."
+        return True
+
+    if jnp.isnan(eps):
+        res['success'] = False
+        res['message'] = f"Function returns 'NaN's"
+        return True
+
+    return False
+
+def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=False, verbose_jac=False):
     """Newton method for root finding using automatic differenciation with jax. The argument `func` must be jittable with jax.
 
     ...
@@ -64,23 +90,15 @@ def newton_jax(func, init, jac=None, maxit=30, tol=1e-8, rtol=None, sparse=False
     Parameters
     ----------
     func : callable
-        Function f for which f(x)=0 should be found. Must be jittable with jax
+        Function f for which f(x)=0 should be found. Is assumed to return a pair (value, jacobian) or (value, jacobian, aux). If not, `val_and_jacfwd` will be applied to the function, in which case the function must be jittable with jax.
     init : array
         Initial values of x
-    jac : callable, optional
-        Function that returns the jacobian. If not provided, jax.jacfwd is used
     maxit : int, optional
         Maximum number of iterations
     tol : float, optional
         Random seed. Defaults to 0
-    sparse : bool, optional
-        Whether to calculate a sparse jacobian. If `true`, and jac is supplied, this should return a sparse matrix
     solver : callable, optional
         Provide a custom solver
-    func_returns_jac : bool, optional
-        Set to `True` if the function also returns the jacobian.
-    inspect_jac : bool, optional
-        If `True`, use grgrlib.plots.spy to visualize the jacobian
     verbose : bool, optional
         Whether to display messages
     verbose_jac : bool, optional
@@ -93,24 +111,12 @@ def newton_jax(func, init, jac=None, maxit=30, tol=1e-8, rtol=None, sparse=False
     """
 
     st = time.time()
-    verbose_jac |= inspect_jac
     verbose |= verbose_jac
     rtol = rtol or tol
 
-    if jac is None and not func_returns_jac:
-        if sparse:
-            def jac(x): return ssp.csr_array(jax.jacfwd(func)(x))
-        else:
-            jac = jax.jacfwd(func)
-
-    if solver is None:
-        if sparse:
-            solver = ssp.linalg.spsolve
-        else:
-            solver = jax.scipy.linalg.solve
-
     res = {}
     cnt = 0
+    eps_fval = 1e8
     xi = jnp.array(init)
 
     while True:
@@ -118,63 +124,42 @@ def newton_jax(func, init, jac=None, maxit=30, tol=1e-8, rtol=None, sparse=False
         xold = xi.copy()
         jacold = jacval.copy() if cnt else None
         cnt += 1
+        # evaluate function
+        fout = func(xi)
+        if not isinstance(fout, tuple):
+            func = val_and_jacfwd(func)
 
-        if func_returns_jac:
-            fout = func(xi)
-            fval, jacval, aux = fout if len(fout) == 3 else (*fout, None)
-            if sparse and not isinstance(jacval, ssp._arrays.csr_array):
-                jacval = ssp.csr_array(jacval)
-        else:
-            fout, jacval = func(xi), jac(xi)
-            fval, aux = fout if len(fout) == 2 else (fout, None)
+        fval, jacval, aux = fout if len(fout) == 3 else (*fout, None)
 
-        jac_is_nan = jnp.isnan(jacval.data) if isinstance(
-            jacval, ssp._arrays.csr_array) else jnp.isnan(jacval)
-        if jac_is_nan.any():
-            res['success'] = False
-            res['message'] = "The Jacobian contains `NaN`s."
-            jacval = jacold if jacold is not None else jacval
+        jac_is_nan = jnp.isnan(jacval.data).any() if isinstance(
+            jacval, ssp._arrays.csr_array) else jnp.isnan(jacval).any()
+        eps = jnp.abs(fval).max()
+
+        if perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
             break
 
-        eps_fval = jnp.abs(fval).max()
-        if eps_fval < tol:
-            res['success'] = True
-            res['message'] = "The solution converged."
-            break
+        if solver is None:
+            if isinstance(jacval, ssp._arrays.csr_array):
+                solver = ssp.linalg.spsolve
+            else:
+                solver = jax.scipy.linalg.solve
 
-        xi -= solver(jacval, fval)
-        eps = jnp.abs(xi - xold).max()
-
-        if verbose:
+        if verbose and cnt:
             ltime = time.time() - st
             info_str = f'    Iteration {cnt:3d} | max. error {eps:.2e} | lapsed {ltime:3.4f}'
             if verbose_jac:
-                jacval = jacval.toarray() if sparse else jacval
+                jacval = jacval.toarray() if isinstance(jacval, ssp._arrays.csr_array) else jacval
                 jacdet = jnp.linalg.det(jacval) if (
                     jacval.shape[0] == jacval.shape[1]) else 0
                 info_str += f' | det {jacdet:1.5g} | rank {jnp.linalg.matrix_rank(jacval)}/{jacval.shape[0]}'
-                if inspect_jac:
-                    spy(jacval)
 
             print(info_str)
 
-        if cnt == maxit:
-            res['success'] = False
-            res['message'] = f"Maximum number of {maxit} iterations reached."
-            break
-
-        if eps < rtol:
-            res['success'] = True
-            res['message'] = "The solution converged."
-            break
-
-        if jnp.isnan(eps):
-            res['success'] = False
-            res['message'] = f"Function returns 'NaN's"
-            break
+        xi -= solver(jacval, fval)
 
     jacval = jacval.toarray() if isinstance(
         jacval, (ssp._arrays.csr_array, ssp._arrays.lil_array)) else jacval
+    jacval = jacold if jac_is_nan else jacval
 
     res['x'], res['niter'] = xi, cnt
     res['fun'], res['jac'] = fval, jacval
