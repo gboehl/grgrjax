@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 from os import path
-from grgrlib import __version__
+from grgrjax import __version__
 
 # read the contents of the README file
 this_directory = path.abspath(path.dirname(__file__))
