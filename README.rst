@@ -2,7 +2,7 @@
 grgrjax
 =======
 
-This library provides some additional tools to JAX, such as Newtons method or vectorized JVP and VJP functions.
+This library provides some useful additional tools to `JAX <https://github.com/google/jax>`_, such as a `multivariate Newton method <https://en.wikipedia.org/wiki/Newton%27s_method#k_variables,_k_functions>`_, ``val_and_jacfwd`` or vectorized JVP and VJP functions.
 
 Installation with ``pip``
 -----------------------------
