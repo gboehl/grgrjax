@@ -4,7 +4,7 @@ import jax
 import time
 import jax.numpy as jnp
 import scipy.sparse as ssp
-from .helpers import val_and_jacfwd
+from .helpers import val_and_jacfwd, amax
 
 
 def newton_cond_func(carry):
@@ -44,7 +44,7 @@ def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
     Parameters
     ----------
     func : callable
-        Function returning (y, jac) where f(x)=y=0 should be found and jac is the jacobian. Must be jittable with jax. Could e.g. be the output of jacfwd_and_val.
+        Function returning (y, jac) where f(x)=y=0 should be found and jac is the jacobian. Must be jittable with jax. Could e.g. be the output of jacfwd_and_val. The function must be a jax.
     x_init : array
         Initial values of x
     maxit : int, optional
@@ -86,7 +86,7 @@ def perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
     return False
 
 
-def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=False, verbose_jac=False):
+def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=True, verbose_jac=False):
     """Newton method for root finding using automatic differenciation with jax. The argument `func` must be jittable with jax.
 
     ...

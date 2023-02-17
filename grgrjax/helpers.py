@@ -12,6 +12,9 @@ except ImportError:
     from jax._src.api_util import check_callable as _check_callable
 
 
+amax = jax.jit(lambda x: jnp.abs(x).max())
+
+
 def jvp_vmap(fun: Callable, argnums: Union[int, Sequence[int]] = 0):
     """Vectorized (forward-mode) jacobian-vector product of ``fun``. This is by large adopted from the implementation of jacfwd in jax._src.api.
 
