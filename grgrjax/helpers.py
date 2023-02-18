@@ -20,12 +20,10 @@ def jvp_vmap(fun: Callable, argnums: Union[int, Sequence[int]] = 0):
 
     Args:
       fun: Function whose value and Jacobian is to be computed.
-      argnums: Optional, integer or sequence of integers. Specifies which
-        positional argument(s) to differentiate with respect to (default ``0``).
+      argnums: Optional, integer or sequence of integers. Specifies which positional argument(s) to differentiate with respect to (default ``0``).
 
     Returns:
-      A function with the same arguments as ``fun``, that evaluates the value and Jacobian of
-      ``fun`` using forward-mode automatic differentiation.
+      A function with the same arguments as ``fun``, that evaluates the value and Jacobian of ``fun`` using forward-mode automatic differentiation.
     """
     _check_callable(fun)
     argnums = _ensure_index(argnums)
@@ -75,18 +73,12 @@ def val_and_jacfwd(fun: Callable, argnums: Union[int, Sequence[int]] = 0,
 
     Args:
       fun: Function whose value and Jacobian is to be computed.
-      argnums: Optional, integer or sequence of integers. Specifies which
-        positional argument(s) to differentiate with respect to (default ``0``).
-      has_aux: Optional, bool. Indicates whether ``fun`` returns a pair where the
-        first element is considered the output of the mathematical function to be
-        differentiated and the second element is auxiliary data. Default False.
-      holomorphic: Optional, bool. Indicates whether ``fun`` is promised to be
-        holomorphic. Default False.
+      argnums: Optional, integer or sequence of integers. Specifies which positional argument(s) to differentiate with respect to (default ``0``).
+      has_aux: Optional, bool. Indicates whether ``fun`` returns a pair where the first element is considered the output of the mathematical function to be differentiated and the second element is auxiliary data. Default False.
+      holomorphic: Optional, bool. Indicates whether ``fun`` is promised to be holomorphic. Default False.
 
     Returns:
-      A function with the same arguments as ``fun``, that evaluates the value and Jacobian of
-      ``fun`` using forward-mode automatic differentiation. If ``has_aux`` is True
-      then a tuple of (value, jacobian, auxiliary_data) is returned.
+      A function with the same arguments as ``fun``, that evaluates the value and Jacobian of ``fun`` using forward-mode automatic differentiation. If ``has_aux`` is True then a tuple of (value, jacobian, auxiliary_data) is returned.
     """
     _check_callable(fun)
     argnums = _ensure_index(argnums)

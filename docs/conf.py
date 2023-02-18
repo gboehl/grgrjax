@@ -73,7 +73,6 @@ html_theme_options = {
     "use_issues_button": True,
     "use_repository_button": True,
     "use_download_button": True,
-    "github_repo": "grgrjax",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
