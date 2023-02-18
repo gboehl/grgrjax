@@ -7,17 +7,17 @@ import scipy.sparse as ssp
 from .helpers import val_and_jacfwd, amax
 
 
-def newton_cond_func(carry):
+def _newton_cond_func(carry):
     (xi, eps, cnt), (func, verbose, maxit, tol) = carry
     cond = cnt < maxit
     cond = jnp.logical_and(cond, eps > tol)
     cond = jnp.logical_and(cond, ~jnp.isnan(eps))
     verbose = jnp.logical_and(cnt, verbose)
-    jax.debug.callback(callback_func, cnt, eps, verbose=verbose)
+    jax.debug.callback(_callback_func, cnt, eps, verbose=verbose)
     return cond
 
 
-def newton_body_func(carry):
+def _newton_body_func(carry):
     (xi, eps, cnt), (func, verbose, maxit, tol) = carry
     xi_old = xi
     f, jac = func(xi)
@@ -26,7 +26,7 @@ def newton_body_func(carry):
     return (xi, eps, cnt+1), (func, verbose, maxit, tol)
 
 
-def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
+def _callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
     mess = f'    Iteration {cnt:3d} | max. error {err:.2e}'
     if dampening is not None:
         mess += f' | dampening {dampening:1.3f}'
@@ -56,8 +56,8 @@ def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
     -------
     res: (xopt, (fopt, jacopt), niter, success)
     """
-    (xi, eps, cnt), _ = jax.lax.while_loop(newton_cond_func,
-                                           newton_body_func, ((x_init, 1., 0), (func, verbose, maxit, tol)))
+    (xi, eps, cnt), _ = jax.lax.while_loop(_newton_cond_func,
+                                           _newton_body_func, ((x_init, 1., 0), (func, verbose, maxit, tol)))
     return xi, func(xi), cnt, eps > tol
 
 

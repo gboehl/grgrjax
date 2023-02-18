@@ -1,0 +1,6 @@
+sphinx-book-theme
+ipykernel
+ipython_genutils
+nbsphinx
+jax
+jaxlib
