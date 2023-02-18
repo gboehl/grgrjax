@@ -39,7 +39,7 @@ def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
 
 
 @jax.jit
-def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
+def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
     """Newton method for root finding using automatic differentiation with jax and running in jitted jax.
     ...
 
@@ -47,7 +47,7 @@ def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
     ----------
     func : callable
         Function returning (y, jac) where f(x)=y=0 should be found and jac is the jacobian. Must be jittable with jax. Could e.g. be the output of jacfwd_and_val. The function must be a jax.
-    x_init : array
+    init : array
         Initial values of x
     maxit : int, optional
         Maximum number of iterations
@@ -59,11 +59,11 @@ def newton_jax_jit(func, x_init, maxit=30, tol=1e-8, verbose=True):
     res: (xopt, (fopt, jacopt), niter, success)
     """
     (xi, eps, cnt), _ = jax.lax.while_loop(_newton_cond_func,
-                                           _newton_body_func, ((x_init, 1., 0), (func, verbose, maxit, tol)))
+                                           _newton_body_func, ((init, 1., 0), (func, verbose, maxit, tol)))
     return xi, func(xi), cnt, eps > tol
 
 
-def perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
+def _perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
 
     if jac_is_nan.any():
         res['success'] = False
@@ -90,7 +90,6 @@ def perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
 
 def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=True, verbose_jac=False):
     """Newton method for root finding using automatic differenciation with jax. The argument `func` must be jittable with jax.
-
     ...
 
     Parameters
@@ -143,7 +142,7 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=T
         jac_is_nan = jnp.isnan(jacval.data).any() if isinstance(
             jacval, ssp._arrays.csr_array) else jnp.isnan(jacval).any()
         eps = jnp.abs(fval).max()
-        if perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
+        if _perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
             break
 
         # be informative

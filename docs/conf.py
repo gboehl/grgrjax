@@ -81,7 +81,7 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 autoclass_content = "both"
-autodoc_member_order = "groupwise"
+autodoc_member_order = "bysource"
 latex_use_parts = False
 
 
