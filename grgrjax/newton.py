@@ -27,7 +27,7 @@ def _newton_body_func(carry):
 
 
 def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
-    """print an update to iterative process
+    """Print a formatted on-line update for a iterative process.
     """
     mess = f'    Iteration {cnt:3d} | max. error {err:.2e}'
     if dampening is not None:
