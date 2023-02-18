@@ -40,7 +40,7 @@ def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
 
 @jax.jit
 def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
-    """Newton method for root finding using automatic differentiation with jax and running in and as jitted jax.
+    """Newton method for root finding of `func` using automatic differentiation with jax and running in and as jitted jax.
 
     Parameters
     ----------
@@ -88,7 +88,7 @@ def _perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
 
 
 def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=True, verbose_jac=False):
-    """Newton method for root finding using automatic differenciation with jax. The argument `func` must be jittable with jax.
+    """Newton method for root finding of `func` using automatic differenciation with jax. The argument `func` must be jittable with jax. `newton_jax` itself is not jittable, for this use `newton_jax_jit`.
 
     Parameters
     ----------
@@ -101,7 +101,7 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=T
     tol : float, optional
         Random seed. Defaults to 0
     solver : callable, optional
-        Provide a custom solver
+        Provide a custom solver `solver(J,f)` for J@x = f. defaults to `jax.numpy.linalg.solve`
     verbose : bool, optional
         Whether to display messages
     verbose_jac : bool, optional
