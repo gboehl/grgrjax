@@ -13,7 +13,7 @@ def _newton_cond_func(carry):
     cond = jnp.logical_and(cond, eps > tol)
     cond = jnp.logical_and(cond, ~jnp.isnan(eps))
     verbose = jnp.logical_and(cnt, verbose)
-    jax.debug.callback(_callback_func, cnt, eps, verbose=verbose)
+    jax.debug.callback(callback_func, cnt, eps, verbose=verbose)
     return cond
 
 
@@ -26,7 +26,7 @@ def _newton_body_func(carry):
     return (xi, eps, cnt+1), (func, verbose, maxit, tol)
 
 
-def _callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
+def callback_func(cnt, err, dampening=None, ltime=None, verbose=True):
     mess = f'    Iteration {cnt:3d} | max. error {err:.2e}'
     if dampening is not None:
         mess += f' | dampening {dampening:1.3f}'

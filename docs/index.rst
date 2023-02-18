@@ -1,8 +1,8 @@
 
 .. include:: ../README.rst
 
-Content
-=======
+Modules & Functions
+===================
 
 ``grgrjax.newton``
 ------------------
