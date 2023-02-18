@@ -4,4 +4,3 @@ ipython_genutils
 nbsphinx
 jax
 jaxlib
-grgrjax
