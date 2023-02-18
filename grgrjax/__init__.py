@@ -7,7 +7,7 @@ from .helpers import *
 from .newton import *
 
 __version__ = '0.3.0'
-__all__ = ["newton_jax_jit", "newton_jax", "callback_func", "jax_print",
+__all__ = ["newton_jax", "newton_jax_jit", "callback_func", "jax_print",
            "jvp_vmap", "vjp_vmap", "val_and_jacfwd", "val_and_jacrev", "amax"]
 
 
