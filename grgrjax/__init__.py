@@ -13,6 +13,6 @@ __all__ = ["newton_jax", "newton_jax_jit", "callback_func", "jax_print",
 
 
 def amax(x):
-    """return the maximum absolute value
+    """Return the maximum absolute value.
     """
     return jnp.abs(x).max()
