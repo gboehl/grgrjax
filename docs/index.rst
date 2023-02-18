@@ -2,10 +2,18 @@
 .. include:: ../README.rst
 
 Content
--------
+=======
 
+``grgrjax.newton``
+------------------
+.. automodule:: grgrjax.newton
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-.. toctree::
-   :maxdepth: 2
-
-   modules
+``grgrjax.helpers``
+-------------------
+.. automodule:: grgrjax.helpers
+   :members:
+   :undoc-members:
+   :show-inheritance:
