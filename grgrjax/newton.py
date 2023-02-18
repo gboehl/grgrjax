@@ -55,7 +55,14 @@ def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
 
     Returns
     -------
-    res: (xopt, (fopt, jacopt), niter, success)
+    xopt : array
+        Solution value x for f
+    (fopt, jacopt): tuple of arrays
+        : value (`fopt`) and Jacobian (`jacopt`) of `func` at `xopt`
+    niter : int
+        Number of iterations
+    success: bool
+        Wether the convergence criterion was reached
     """
     (xi, eps, cnt), _ = jax.lax.while_loop(_newton_cond_func,
                                            _newton_body_func, ((init, 1., 0), (func, verbose, maxit, tol)))
