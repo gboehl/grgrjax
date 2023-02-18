@@ -73,10 +73,7 @@ html_theme_options = {
     "use_issues_button": True,
     "use_repository_button": True,
     "use_download_button": True,
-    "description": "Some generic tools for JAX",
     "github_repo": "grgrjax",
-    "github_user": "gboehl",
-    "sidebar_collapse": True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
