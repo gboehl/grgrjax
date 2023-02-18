@@ -4,6 +4,11 @@
 Modules & Functions
 -------------------
 
+.. automodule:: grgrjax
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ``grgrjax.newton``
 ^^^^^^^^^^^^^^^^^^
 .. automodule:: grgrjax.newton
