@@ -68,17 +68,25 @@ def vjp_vmap(fun: Callable, argnums: Union[int, Sequence[int]] = 0):
 
 def val_and_jacfwd(fun: Callable, argnums: Union[int, Sequence[int]] = 0,
                    has_aux: bool = False, holomorphic: bool = False) -> Callable:
-    """Value and Jacobian of ``fun`` evaluated column-by-column using forward-mode AD. Apart from returning the function value, this is one-to-one adopted from
-  jax._src.api.
+    """Value and Jacobian of ``fun`` evaluated column-by-column using forward-mode AD. Apart from returning the function value, this is one-to-one adopted from jax._src.api.
 
     Args:
-      fun: Function whose value and Jacobian is to be computed.
-      argnums: Optional, integer or sequence of integers. Specifies which positional argument(s) to differentiate with respect to (default ``0``).
-      has_aux: Optional, bool. Indicates whether ``fun`` returns a pair where the first element is considered the output of the mathematical function to be differentiated and the second element is auxiliary data. Default False.
-      holomorphic: Optional, bool. Indicates whether ``fun`` is promised to be holomorphic. Default False.
+      fun: Function whose value and Jacobian are to be computed.
+      argnums: Optional, integer or sequence of integers. Specifies which
+        positional argument(s) to differentiate with respect to (default ``0``).
+      has_aux: Optional, bool. Indicates whether ``fun`` returns a pair where the
+        first element is considered the output of the mathematical function to be
+        differentiated and the second element is auxiliary data. Default False.
+      holomorphic: Optional, bool. Indicates whether ``fun`` is promised to be
+        holomorphic. Default False.
+      allow_int: Optional, bool. Whether to allow differentiating with
+        respect to integer valued inputs. The gradient of an integer input will
+        have a trivial vector-space dtype (float0). Default False.
 
     Returns:
-      A function with the same arguments as ``fun``, that evaluates the value and Jacobian of ``fun`` using forward-mode automatic differentiation. If ``has_aux`` is True then a tuple of (value, jacobian, auxiliary_data) is returned.
+      A function with the same arguments as ``fun``, that evaluates the value and Jacobian of
+      ``fun`` using reverse-mode automatic differentiation. If ``has_aux`` is True
+      then a pair of (jacobian, auxiliary_data) is returned.
     """
     _check_callable(fun)
     argnums = _ensure_index(argnums)
@@ -108,7 +116,7 @@ def val_and_jacfwd(fun: Callable, argnums: Union[int, Sequence[int]] = 0,
 
 def val_and_jacrev(fun: Callable, argnums: Union[int, Sequence[int]] = 0,
                    has_aux: bool = False, holomorphic: bool = False, allow_int: bool = False) -> Callable:
-    """Value and Jacobian of ``fun`` evaluated row-by-row using reverse-mode AD.
+    """Value and Jacobian of ``fun`` evaluated row-by-row using reverse-mode AD. Apart from returning the function value, this is one-to-one adopted from jax._src.api.
 
     Args:
       fun: Function whose value and Jacobian are to be computed.
