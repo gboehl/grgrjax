@@ -57,7 +57,6 @@ templates_path = ["_templates", "**.ipynb_checkpoints"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-
 # -- Options for HTML output -------------------------------------------------
 html_theme = "sphinx_book_theme"
 html_copy_source = True
@@ -85,10 +84,5 @@ html_theme_options = {
 autoclass_content = "both"
 autodoc_member_order = "bysource"
 latex_use_parts = False
-
-
-def setup(app):
-    app.add_css_file('css/custom.css')
-
 
 master_doc = 'index'
