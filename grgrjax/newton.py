@@ -51,7 +51,7 @@ def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
     maxit : int, optional
         Maximum number of iterations
     tol : float, optional
-        Random seed. Defaults to 0
+        Required tolerance. Defaults to 1e-8
 
     Returns
     -------
