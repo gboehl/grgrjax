@@ -6,9 +6,9 @@ import jax.numpy as jnp
 from .helpers import *
 from .newton import *
 
-__version__ = '0.3.0'
-__all__ = ["newton_jax", "newton_jax_jit", "callback_func", "jax_print",
-           "jvp_vmap", "vjp_vmap", "val_and_jacfwd", "val_and_jacrev", "amax"]
+__version__ = '0.4.0'
+__all__ = ["newton_jax", "newton_jax_jit", "amax", "callback_func", "jax_print",
+           "jvp_vmap", "vjp_vmap", "val_and_jacfwd", "val_and_jacrev"]
 
 
 def jax_print(w):
