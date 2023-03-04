@@ -54,7 +54,7 @@ def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
     maxit : int, optional
         Maximum number of iterations
     tol : float, optional
-        Random seed. Defaults to 0
+        Required tolerance. Defaults to 1e-8
 
     Returns
     -------
@@ -109,7 +109,7 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=T
     maxit : int, optional
         Maximum number of iterations
     tol : float, optional
-        Random seed. Defaults to 0
+        Required tolerance. Defaults to 1e-8
     solver : callable, optional
         Provide a custom solver `solver(J,f)` for J@x = f. defaults to `jax.numpy.linalg.solve`
     verbose : bool, optional
