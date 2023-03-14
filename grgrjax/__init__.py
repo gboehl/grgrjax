@@ -15,9 +15,3 @@ def jax_print(w):
     """Print in jax compiled functions. Wrapper around `jax.experimental.host_callback.id_print`.
     """
     return jax.experimental.host_callback.id_print(w)
-
-
-def amax(x):
-    """Return the maximum absolute value.
-    """
-    return jnp.abs(x).max()

@@ -12,7 +12,15 @@ except ImportError:
     from jax._src.api_util import check_callable as _check_callable
 
 
-amax = jax.jit(lambda x: jnp.abs(x).max())
+def amax(x, return_arg=False):
+    """Return the maximum absolute value.
+    """
+    absx = jnp.abs(x)
+    if return_arg:
+        arg = jnp.argmax(absx)
+        return absx[arg], arg
+    else:
+        return absx.max()
 
 
 def jvp_vmap(fun: Callable, argnums: Union[int, Sequence[int]] = 0):
