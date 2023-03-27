@@ -3,7 +3,7 @@
 import jax
 import jax.numpy as jnp
 
-from .version import __version__
+from .__version__ import __version__
 from .helpers import *
 from .newton import *
 

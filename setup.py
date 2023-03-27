@@ -3,7 +3,7 @@ from os import path
 
 # get version from dedicated version file
 version = {}
-with open("grgrjax/version.py") as fp:
+with open("grgrjax/__version__.py") as fp:
     exec(fp.read(), version)
 
 # read the contents of the README file
