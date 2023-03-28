@@ -26,15 +26,15 @@ def _newton_body_func(carry):
     return (xi, eps, cnt+1), (func, verbose, maxit, tol)
 
 
-def callback_func(cnt, err, fev=None, misc=(), ltime=None, verbose=True):
+def callback_func(cnt, err, *args, fev=None, ltime=None, verbose=True):
     """Print a formatted on-line update for a iterative process.
     """
     mess = f'    Iteration {cnt:2d}'
     if fev is not None:
         mess += f' | fev. {fev:3d}'
     mess += f' | error {err:.2e}'
-    for misc_m in misc:
-        mess += misc_m
+    for misc in args:
+        mess += misc
     if ltime is not None:
         mess += f' | lapsed {ltime:3.4f}s'
     if verbose:
