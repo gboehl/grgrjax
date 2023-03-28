@@ -76,7 +76,7 @@ def _perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
 
     if jac_is_nan.any():
         res['success'] = False
-        res['message'] = "The Jacobian contains `NaN`s."
+        res['message'] = "The Jacobian contains NaNs."
         return True
 
     if eps < tol or eps < rtol:
@@ -91,7 +91,7 @@ def _perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
 
     if jnp.isnan(eps):
         res['success'] = False
-        res['message'] = f"Function returns 'NaN's"
+        res['message'] = f"Function returns NaNs"
         return True
 
     return False
