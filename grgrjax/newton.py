@@ -55,7 +55,7 @@ def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
     Parameters
     ----------
     func : callable
-        Function returning (y, jac) where f(x)=y=0 should be found and jac is the jacobian. Must be jittable with jax. Could e.g. be the output of jacfwd_and_val. The function must be a jax.
+        Function returning (y, jac) where f(x)=y=0 should be found and jac is the jacobian. Must be jittable with jax. Could e.g. be the output of val_and_jacfwd. The function must be pure jac (i.e. use `jax.tree_util.Partial` instead of `lambda` where applicable).
     init : array
         Initial values of x
     maxit : int, optional
