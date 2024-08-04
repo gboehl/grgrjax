@@ -14,4 +14,4 @@ __all__ = ["newton_jax", "newton_jax_jit", "amax", "callback_func", "jax_print",
 def jax_print(w):
     """Print in jax compiled functions. Wrapper around `jax.experimental.host_callback.id_print`.
     """
-    return jax.experimental.host_callback.id_print(w)
+    return jax.debug.print('{}', w)
