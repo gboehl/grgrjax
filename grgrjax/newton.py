@@ -15,7 +15,7 @@ except AttributeError:
 
 
 def _newton_cond_func(carry):
-    (xi, eps, cnt), (func, verbose, maxit, tol) = carry
+    (xi, eps, cnt), (func, verbose, maxit, tol, _) = carry
     cond = cnt < maxit
     cond = jnp.logical_and(cond, eps > tol)
     cond = jnp.logical_and(cond, ~jnp.isnan(eps))
@@ -25,12 +25,12 @@ def _newton_cond_func(carry):
 
 
 def _newton_body_func(carry):
-    (xi, eps, cnt), (func, verbose, maxit, tol) = carry
+    (xi, eps, cnt), (func, verbose, maxit, tol, relaxation) = carry
     xi_old = xi
     f, jac = func(xi)
-    xi -= jax.scipy.linalg.solve(jac, f)
+    xi -= relaxation*jax.scipy.linalg.solve(jac, f)
     eps = amax(xi-xi_old)
-    return (xi, eps, cnt+1), (func, verbose, maxit, tol)
+    return (xi, eps, cnt+1), (func, verbose, maxit, tol, relaxation)
 
 
 def callback_func(cnt, err, *args, fev=None, ltime=None, verbose=True):
@@ -49,7 +49,7 @@ def callback_func(cnt, err, *args, fev=None, ltime=None, verbose=True):
 
 
 @jax.jit
-def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
+def newton_jax_jit(func, init, maxit=30, tol=1e-8, relaxation=1, verbose=True):
     """Newton method for root finding of `func` using automatic differentiation with jax and running in and as jitted jax.
 
     Parameters
@@ -62,6 +62,10 @@ def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
         Maximum number of iterations
     tol : float, optional
         Required tolerance. Defaults to 1e-8
+    relaxation : float, optional
+        relaxation factor applied to each newton iteration, defaults to 1
+    verbose : bool, optional
+        Whether to display messages
 
     Returns
     -------
@@ -75,7 +79,7 @@ def newton_jax_jit(func, init, maxit=30, tol=1e-8, verbose=True):
         Wether the convergence criterion was reached
     """
     (xi, eps, cnt), _ = jax.lax.while_loop(_newton_cond_func,
-                                           _newton_body_func, ((init, 1., 0), (func, verbose, maxit, tol)))
+                                           _newton_body_func, ((init, 1., 0), (func, verbose, maxit, tol, relaxation)))
     return xi, func(xi), cnt, eps > tol
 
 
@@ -104,7 +108,7 @@ def _perform_checks_newton(res, eps, cnt, jac_is_nan, tol, rtol, maxit):
     return False
 
 
-def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=True, verbose_jac=False):
+def newton_jax(func, init, maxit=30, tol=1e-8, relaxation=1, rtol=None, solver=None, verbose=True, verbose_jac=False):
     """Newton method for root finding of `func` using automatic differenciation with jax. The argument `func` must be jittable with jax. `newton_jax` itself is not jittable, for this use `newton_jax_jit`.
 
     Parameters
@@ -116,9 +120,11 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=T
     maxit : int, optional
         Maximum number of iterations
     tol : float, optional
-        Required tolerance. Defaults to 1e-8
+        Required tolerance, defaults to 1e-8
+    relaxation : float, optional
+        relaxation factor applied to each newton iteration, defaults to 1
     solver : callable, optional
-        Provide a custom solver `solver(J,f)` for J@x = f. defaults to `jax.numpy.linalg.solve`
+        Provide a custom solver `solver(J,f)` for J@x = f, defaults to `jax.numpy.linalg.solve`
     verbose : bool, optional
         Whether to display messages
     verbose_jac : bool, optional
@@ -178,7 +184,7 @@ def newton_jax(func, init, maxit=30, tol=1e-8, rtol=None, solver=None, verbose=T
                 solver = ssp.linalg.spsolve
             else:
                 solver = jax.scipy.linalg.solve
-        xi -= solver(jacval, fval)
+        xi -= relaxation*solver(jacval, fval)
 
     jacval = jacval.toarray() if isinstance(
         jacval, (ssp_csr_array, ssp_lil_array)) else jacval
