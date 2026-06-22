@@ -4,9 +4,20 @@ import jax
 import time
 import jax.numpy as jnp
 from jax._src.api import (_check_input_dtype_jacfwd, _check_input_dtype_jacrev, _check_output_dtype_jacfwd, _check_output_dtype_jacrev, _ensure_index, _jvp,
-                          _vjp, _std_basis, _jacfwd_unravel, _jacrev_unravel, lu, argnums_partial, tree_map, tree_structure, tree_transpose, partial, Callable, Sequence, vmap, debug_info)
-from jax._src.api_util import check_callable
+                          vjp, _std_basis, _jacfwd_unravel, _jacrev_unravel, tree_map, tree_structure, tree_transpose, partial, Callable, Sequence, vmap, debug_info, argnums_partial2)
+from jax._src.api_util import check_callable, argnums_partial
 
+def _partial_by_argnums(fun, argnums, args, kwargs):
+    argnums_ = (argnums,) if isinstance(argnums, int) else tuple(argnums)
+    dyn_args = tuple(args[i] for i in argnums_)
+
+    def f_partial(*dyn_args_):
+        full_args = list(args)
+        for i, x in zip(argnums_, dyn_args_):
+            full_args[i] = x
+        return fun(*full_args, **kwargs)
+
+    return f_partial, dyn_args
 
 def amax(x, return_arg=False):
     """Return the maximum absolute value.
@@ -44,12 +55,7 @@ def jvp_vmap(fun: Callable, argnums=0, has_aux: bool = False, holomorphic: bool 
 
     def jvpfun(args, tangents, **kwargs):
 
-        try:
-            f = lu.wrap_init(fun, kwargs)
-        except TypeError:
-            f = lu.wrap_init(fun, kwargs, debug_info=debug_info("jvp_vmap", fun, args, kwargs, static_argnums=(argnums,) if isinstance(argnums, int) else argnums))
-        f_partial, dyn_args = argnums_partial(f, argnums, args,
-                                              require_static_args_hashable=False)
+        f_partial, dyn_args = _partial_by_argnums(fun, argnums, args, kwargs)
         if tangents is None: 
             tangents = _std_basis(dyn_args)
         tree_map(partial(_check_input_dtype_jacfwd, holomorphic), dyn_args)
@@ -107,18 +113,13 @@ def vjp_vmap(fun: Callable, argnums=0, has_aux: bool = False, holomorphic: bool 
     check_callable(fun)
 
     def vjpfun(args, tangents, **kwargs):
-        try:
-            f = lu.wrap_init(fun, kwargs)
-        except TypeError:
-            f = lu.wrap_init(fun, kwargs, debug_info=debug_info("vjp_vmap", fun, args, kwargs, static_argnums=(argnums,) if isinstance(argnums, int) else argnums))
-        f_partial, dyn_args = argnums_partial(f, argnums, args,
-                                              require_static_args_hashable=False)
+        f_partial, dyn_args = _partial_by_argnums(fun, argnums, args, kwargs)
         tree_map(partial(_check_input_dtype_jacrev,
                  holomorphic, allow_int), dyn_args)
         if not has_aux:
-            y, pullback = _vjp(f_partial, *dyn_args)
+            y, pullback = jax.vjp(f_partial, *dyn_args)
         else:
-            y, pullback, aux = _vjp(f_partial, *dyn_args, has_aux=True)
+            y, pullback, aux = jax.vjp(f_partial, *dyn_args, has_aux=True)
         tree_map(partial(_check_output_dtype_jacrev, holomorphic), y)
         if tangents is not None:
             jac = vmap(pullback)(tangents)
